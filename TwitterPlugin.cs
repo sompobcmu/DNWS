@@ -204,8 +204,7 @@ namespace DNWS
                     return null;
                 }
             }
-        }
-
+        }       
     }
     public class TwitterPlugin : IPlugin
     {
@@ -220,7 +219,7 @@ namespace DNWS
         }
 
         private StringBuilder GenTimeline(Twitter twitter, StringBuilder sb)
-        {
+        {          
             sb.Append("Say something<br />");
             sb.Append("<form method=\"post\">");
             sb.Append("<input type=\"text\" name=\"message\"></input>");
@@ -229,9 +228,8 @@ namespace DNWS
             sb.Append("Follow someone<br />");
             sb.Append("<form method=\"post\">");
             sb.Append("<input type=\"text\" name=\"following\"></input>");
-            sb.Append("<input type=\"submit\" name=\"action\" value=\"following\" /> <br />");
-            sb.Append("</form>");
-            sb.Append(String.Format("<h3><b>{0}</b>'s timeline</h3><br />", twitter.GetUsername()));
+            sb.Append("<input type=\"submit\" name=\"action\" value=\"following\" /> <br />");           
+            sb.Append("</form>");         
             List<Tweet> tweets = twitter.GetUserTimeline();
             foreach (Tweet tweet in tweets)
             {
@@ -256,6 +254,7 @@ namespace DNWS
 
         protected StringBuilder GenLoginPage(StringBuilder sb)
         {
+                        
             sb.Append("<h2>Login</h2>");
             sb.Append("<form method=\"get\">");
             sb.Append("Username: <input type=\"text\" name=\"user\" value=\"\" /> <br />");
@@ -267,9 +266,12 @@ namespace DNWS
             sb.Append("<form method=\"get\">");
             sb.Append("Username: <input type=\"text\" name=\"user\" value=\"\" /> <br />");
             sb.Append("Password: <input type=\"password\" name=\"password\" value=\"\" /> <br />");
-            sb.Append("<input type=\"submit\" name=\"action\" value=\"newuser\" /> <br />");
-            sb.Append("</form>");
+            sb.Append("<input type=\"submit\" name=\"action\" value=\"newuser\" /> <br />");          
+            //add buttom to show listUser.
+            sb.Append("<br /><input type=\"submit\" name=\"action\" value=\"ListUser\" /> <br />");  
+            sb.Append("</form>");           
             return sb;
+            
         }
 
 
@@ -295,7 +297,7 @@ namespace DNWS
                     {
                         Twitter twitter = new Twitter(user);
                         sb.Append(String.Format("<h1>{0}'s Twitter</h1>", user));
-                        sb = GenTimeline(twitter, sb);
+                        sb = GenTimeline(twitter, sb);                                       
                     }
                     catch (Exception ex)
                     {
@@ -333,6 +335,34 @@ namespace DNWS
                             }
                         }
                     }
+                    //create action of ListUser bottom.
+                    else if (action.Equals("ListUser")){                   
+                        using (var context = new TweetContext())
+            {               
+                    List<User> users = context.Users.ToList();     //Collect user.
+                    sb.Append("<form method=\"post\">");
+                    sb.Append("<br />");       
+                 int count = 0 ; 
+                  //show all user by used try-catch if error bacause out of rang,loop will be stop and show how many account.
+                  try
+                    {                               
+                     while(true){
+                     sb.Append("<br /><b>");
+                     sb.Append(users[count].Name);
+                     sb.Append("</b><br />");
+                     count++; 
+                     } 
+                     }
+                    catch (Exception ex)
+                    {
+                      sb.Append("----This_is_all_user-----");   
+                    }                          
+                    sb.Append("<br />Total User : ");
+                    sb.Append(count);
+                    sb.Append("<br />");
+                    sb.Append("</form>"); 
+            }                     
+                    }
                     else
                     {
                         Twitter twitter = new Twitter(user);
@@ -355,6 +385,7 @@ namespace DNWS
                             {
                                 twitter.PostTweet(message);
                                 sb = GenTimeline(twitter, sb);
+                                
                             }
                             catch (Exception ex)
                             {
