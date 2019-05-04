@@ -211,7 +211,8 @@ namespace DNWS
             using (var context = new TweetContext())
             {
                 List<User> user = context.Users.Where(b => b.Name.Equals(R_user)).ToList();
-                context.Remove(user[0]);
+                context.Users.Remove(user[0]);
+                context.SaveChanges();
             }
         }
     }
@@ -229,8 +230,6 @@ namespace DNWS
 
         private StringBuilder GenTimeline(Twitter twitter, StringBuilder sb)
         {   
-            //add buttom to delete User.
-            sb.Append("<form method=\"post\"><input type=\"submit\" name=\"action\" value=\"DeleteThisUser\" /> <br /></form>"); 
             sb.Append("Say something<br />");
             sb.Append("<form method=\"post\">");
             sb.Append("<input type=\"text\" name=\"message\"></input>");
@@ -282,9 +281,7 @@ namespace DNWS
             sb.Append("<form method=\"get\">");
             sb.Append("Username: <input type=\"text\" name=\"user\" value=\"\" /> <br />");
             sb.Append("Password: <input type=\"password\" name=\"password\" value=\"\" /> <br />");
-            sb.Append("<input type=\"submit\" name=\"action\" value=\"newuser\" /> <br />");          
-            //add buttom to show listUser.
-            sb.Append("<br /><input type=\"submit\" name=\"action\" value=\"ListUser\" /> <br />");             
+            sb.Append("<input type=\"submit\" name=\"action\" value=\"newuser\" /> <br />");                               
             sb.Append("</form>");           
             return sb;          
         }
