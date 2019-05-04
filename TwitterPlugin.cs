@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using System.Web;
 namespace DNWS
 {
     class Following
@@ -174,6 +174,7 @@ namespace DNWS
                 }
                 context.Users.Add(user);
                 context.SaveChanges();
+             
             }
         }
 
@@ -204,7 +205,15 @@ namespace DNWS
                     return null;
                 }
             }
-        }       
+        }
+        public void RemoveUser(string R_user)
+        {            
+            using (var context = new TweetContext())
+            {
+                List<User> user = context.Users.Where(b => b.Name.Equals(R_user)).ToList();
+                context.Remove(user[0]);
+            }
+        }
     }
     public class TwitterPlugin : IPlugin
     {
@@ -219,7 +228,9 @@ namespace DNWS
         }
 
         private StringBuilder GenTimeline(Twitter twitter, StringBuilder sb)
-        {          
+        {   
+            //add buttom to delete User.
+            sb.Append("<form method=\"post\"><input type=\"submit\" name=\"action\" value=\"DeleteThisUser\" /> <br /></form>"); 
             sb.Append("Say something<br />");
             sb.Append("<form method=\"post\">");
             sb.Append("<input type=\"text\" name=\"message\"></input>");
@@ -228,20 +239,22 @@ namespace DNWS
             sb.Append("Follow someone<br />");
             sb.Append("<form method=\"post\">");
             sb.Append("<input type=\"text\" name=\"following\"></input>");
-            sb.Append("<input type=\"submit\" name=\"action\" value=\"following\" /> <br />");           
-            sb.Append("</form>");         
+            sb.Append("<input type=\"submit\" name=\"action\" value=\"following\" /> <br />");                      
+            sb.Append("</form>");
             List<Tweet> tweets = twitter.GetUserTimeline();
             foreach (Tweet tweet in tweets)
             {
                 sb.Append("[" + tweet.DateCreated + "]" + tweet.User + ":" + tweet.Message + "<br />");
             }
             sb.Append("<br /><br />");
-            sb.Append("<h3>Following timeline</h3><br />");
+            sb.Append("<h3>Following timeline</h3><br />");            
             tweets = twitter.GetFollowingTimeline();
+            
             if (tweets == null)
             {
                 sb.Append("Your following list is empty, follow someone!");
             }
+
             else
             {
                 foreach (Tweet tweet in tweets)
@@ -249,6 +262,9 @@ namespace DNWS
                     sb.Append("[" + tweet.DateCreated + "] " + tweet.User + ":" + tweet.Message + "<br />");
                 }
             }
+            sb.Append("<h3>List Following</h3><br />");
+           
+
             return sb;
         }
 
@@ -268,14 +284,13 @@ namespace DNWS
             sb.Append("Password: <input type=\"password\" name=\"password\" value=\"\" /> <br />");
             sb.Append("<input type=\"submit\" name=\"action\" value=\"newuser\" /> <br />");          
             //add buttom to show listUser.
-            sb.Append("<br /><input type=\"submit\" name=\"action\" value=\"ListUser\" /> <br />");  
+            sb.Append("<br /><input type=\"submit\" name=\"action\" value=\"ListUser\" /> <br />");             
             sb.Append("</form>");           
-            return sb;
-            
+            return sb;          
         }
 
 
-        public HTTPResponse GetResponse(HTTPRequest request)
+        public virtual HTTPResponse GetResponse(HTTPRequest request)
         {
             HTTPResponse response = new HTTPResponse(200);
             StringBuilder sb = new StringBuilder();
@@ -334,35 +349,7 @@ namespace DNWS
                                 sb.Append("Error login, please go back to <a href=\"/twitter\">login page</a> to try again");
                             }
                         }
-                    }
-                    //create action of ListUser bottom.
-                    else if (action.Equals("ListUser")){                   
-                        using (var context = new TweetContext())
-            {               
-                    List<User> users = context.Users.ToList();     //Collect user.
-                    sb.Append("<form method=\"post\">");
-                    sb.Append("<br />");       
-                 int count = 0 ; 
-                  //show all user by used try-catch if error bacause out of rang,loop will be stop and show how many account.
-                  try
-                    {                               
-                     while(true){
-                     sb.Append("<br /><b>");
-                     sb.Append(users[count].Name);
-                     sb.Append("</b><br />");
-                     count++; 
-                     } 
-                     }
-                    catch (Exception ex)
-                    {
-                      sb.Append("----This_is_all_user-----");   
-                    }                          
-                    sb.Append("<br />Total User : ");
-                    sb.Append(count);
-                    sb.Append("<br />");
-                    sb.Append("</form>"); 
-            }                     
-                    }
+                    }                                   
                     else
                     {
                         Twitter twitter = new Twitter(user);
@@ -371,21 +358,19 @@ namespace DNWS
                         {
                             try
                             {
-                                twitter.AddFollowing(following);
-                                sb = GenTimeline(twitter, sb);
+                                twitter.AddFollowing(following);                                 
                             }
                             catch (Exception ex)
                             {
                                 sb.Append(String.Format("Error [{0}], please go back to <a href=\"/twitter\">login page</a> to try again", ex.Message));
                             }
-                        }
+                        }                    
                         else if (action.Equals("tweet"))
                         {
                             try
                             {
                                 twitter.PostTweet(message);
-                                sb = GenTimeline(twitter, sb);
-                                
+                                sb = GenTimeline(twitter, sb);                                
                             }
                             catch (Exception ex)
                             {
