@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
+/// <summary>
+/// A part of code from 600611030
+/// </summary>
+
 namespace DNWS
 {
     public class TwitterApiPlugin : TwitterPlugin
@@ -17,27 +21,12 @@ namespace DNWS
             {
                 try
                 {
-                    List<User> users = context.Users.ToList();
+                    List<User> users = context.Users.ToList(); //list users store in users .
                     return users;
                 }
                 catch (Exception)
                 {
                     return null;
-                }
-            }
-        }
-        private bool ChackListUsers(string name)
-        {
-            using (var context = new TweetContext())
-            {
-                try
-                {
-                    List<User> users = context.Users.Where(b => b.Name.Equals(name)).ToList();
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
                 }
             }
         }
@@ -47,7 +36,7 @@ namespace DNWS
             {
                 try
                 {
-                    List<User> ListFollow = context.Users.Where(b => b.Name.Equals(F)).Include(b => b.Following).ToList();
+                    List<User> ListFollow = context.Users.Where(b => b.Name.Equals(F)).Include(b => b.Following).ToList(); //ListFollow users store in ListFollow 
                     return ListFollow[0].Following;
                 }
                 catch (Exception)
@@ -64,20 +53,20 @@ namespace DNWS
             string following = request.getRequestByKey("follow");
             string message = request.getRequestByKey("message");
             string time = request.getRequestByKey("timeline");
-            string[] name = request.Filename.Split("?");
+            string[] name = request.Filename.Split("?");        //split part 
            
             if (name[0] == "API") {
                 Twitter twitter = new Twitter(user);
                 if (request.Method == "GET")
                 {
-                    string json = JsonConvert.SerializeObject(ListUsers());
+                    string json = JsonConvert.SerializeObject(ListUsers()); //show list user 
                     response.body = Encoding.UTF8.GetBytes(json);
                 }
                 else if (request.Method == "POST")
                 {
                     try
                     {
-                        Twitter.AddUser(user, password);
+                        Twitter.AddUser(user, password); //add usersby use name and password.
                         response.body = Encoding.UTF8.GetBytes("SUCCESS");
                     }
                     catch (Exception)
@@ -91,8 +80,8 @@ namespace DNWS
                 
                 try
                 {
-                    twitter.RemoveUser(user);
-                    response.body = Encoding.UTF8.GetBytes("OK^_^");
+                    twitter.RemoveUser(user); //remove user by use name  but sill bug if user have following it can not delete.
+                        response.body = Encoding.UTF8.GetBytes("OK^_^");
                 }
                 catch (Exception)
                 {
@@ -105,16 +94,18 @@ namespace DNWS
                 Twitter twitter = new Twitter(user);
                 if (request.Method == "GET")
                 {
-                    string json = JsonConvert.SerializeObject(ListFollow(user));
+                    string json = JsonConvert.SerializeObject(ListFollow(user)); //list all following.
                     response.body = Encoding.UTF8.GetBytes(json);
                 }
                 else if (request.Method == "POST")
                 {
                     try
                     {
+                        if (twitter.chack(following)) { //chack it have follow in list if not add it.
                         Twitter Friend = new Twitter(user);
-                        Friend.AddFollowing(following);
+                        Friend.AddFollowing(following);   //AddFollowing
                         response.body = Encoding.UTF8.GetBytes("SUCCESS");
+                        }
                     }
                     catch (Exception)
                     {
@@ -127,7 +118,7 @@ namespace DNWS
               
                     try
                     {
-                        twitter.RemoveFollowing(following);
+                        twitter.RemoveFollowing(following);  //RemoveFollowing.
                         response.body = Encoding.UTF8.GetBytes("OK^_^");
                     }
                     catch (Exception)
@@ -143,12 +134,12 @@ namespace DNWS
                 {
                     if (time == "FOLLOW")
                     {
-                        string json = JsonConvert.SerializeObject(twitter.GetFollowingTimeline());
+                        string json = JsonConvert.SerializeObject(twitter.GetFollowingTimeline()); //get timeline Following if FOLLOW
                         response.body = Encoding.UTF8.GetBytes(json);
                     }
                     else
                     {
-                        string json = JsonConvert.SerializeObject(twitter.GetFollowingTimeline());
+                        string json = JsonConvert.SerializeObject(twitter.GetFollowingTimeline()); //get timeline Following
                         response.body = Encoding.UTF8.GetBytes(json);
                     }
                 }
@@ -156,7 +147,7 @@ namespace DNWS
                 {
                     try
                     {
-                        twitter.PostTweet(message);
+                        twitter.PostTweet(message);    //POst message
                         response.body = Encoding.UTF8.GetBytes("SUCCESS");
                     }
                     catch (Exception)
@@ -168,8 +159,7 @@ namespace DNWS
                 else if (request.Method == "DELETE")
                 {
                     try
-                    {
-                        
+                    {                       
                         response.body = Encoding.UTF8.GetBytes("OK^_^");
                     }
                     catch (Exception)

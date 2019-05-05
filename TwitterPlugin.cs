@@ -215,6 +215,18 @@ namespace DNWS
                 context.SaveChanges();
             }
         }
+        public bool chack(string follow)
+        {
+            using (var context = new TweetContext())
+            {
+                List<User> user = context.Users.Where(b => b.Name.Equals(follow)).ToList();
+                if (user.Count == 1) //if any follow in user return true
+                {
+                    return true;
+                }
+                else return false; 
+            }
+        }
     }
     public class TwitterPlugin : IPlugin
     {
